@@ -3,28 +3,14 @@ new file mode 100644
 index 0000000..xxxxxxxx
 --- /dev/null
 +++ b/src/main/java/com/kunpeng/math/FastDecimal.java
-@@ -0,0 +1,177 @@
+@@ -0,0 +1,145 @@
 +package com.kunpeng.math;
 +
 +import java.math.BigDecimal;
 +import java.math.RoundingMode;
 +
-+/**
-+ * BigDecimal 算法级优化 - JDK 25+ 专用版本
-+ *
-+ * === 使用方法 ===
-+ * 1. 将此文件复制到你的项目: src/main/java/com/kunpeng/math/FastDecimal.java
-+ * 2. 编译: javac FastDecimal.java
-+ * 3. 使用: FixedScaleCalculator calc = FastDecimal.createCalculator(2);
-+ *
-+ * === 性能提升 ===
-+ * - DIVIDE:   9.6x 加速 (2.60 ns/op vs 25 ns/op)
-+ * - MULTIPLY: 7.9x 加速 (2.52 ns/op vs 20 ns/op)
-+ * - SETSCALE: 13.9x 加速 (2.52 ns/op vs 35 ns/op)
-+ */
 +public final class FastDecimal {
 +
-+    // ========== 10^n 预计算表 ==========
 +    private static final long[] POW10 = {
 +        1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L,
 +        10000000L, 100000000L, 1000000000L, 10000000000L,
@@ -37,12 +23,6 @@ index 0000000..xxxxxxxx
 +        return POW10[n];
 +    }
 +
-+    /**
-+     * 固定精度计算器
-+     *
-+     * 使用 long 存储数值，scale 固定
-+     * 例如：scale=2 时，12345 表示 123.45
-+     */
 +    public static final class FixedScaleCalculator {
 +        private final int scale;
 +        private final long factor;
@@ -57,7 +37,6 @@ index 0000000..xxxxxxxx
 +
 +        public int scale() { return scale; }
 +
-+        // ===== 转换 =====
 +        public long toLong(BigDecimal value) {
 +            return value.movePointRight(scale).longValue();
 +        }
@@ -66,7 +45,6 @@ index 0000000..xxxxxxxx
 +            return BigDecimal.valueOf(value, scale);
 +        }
 +
-+        // ===== DIVIDE =====
 +        public long divide(long a, long b) {
 +            return a / b;
 +        }
@@ -92,9 +70,8 @@ index 0000000..xxxxxxxx
 +            return sign(q, a, b);
 +        }
 +
-+        // ===== MULTIPLY =====
 +        public long multiply(long a, long b) {
-+            return a / factor * b;  // 先除后乘，避免溢出
++            return a / factor * b;
 +        }
 +
 +        public long multiplyExact(long a, long b) {
@@ -102,7 +79,6 @@ index 0000000..xxxxxxxx
 +            return p / factor;
 +        }
 +
-+        // ===== SETSCALE =====
 +        public long setScale(long value, int newScale) {
 +            return setScale(value, newScale, RoundingMode.HALF_UP);
 +        }
@@ -130,7 +106,6 @@ index 0000000..xxxxxxxx
 +            return q;
 +        }
 +
-+        // ===== 批量操作 =====
 +        public long[] divideBatch(long[] a, long[] b) {
 +            long[] r = new long[a.length];
 +            for (int i = 0; i < a.length; i++) r[i] = divide(a[i], b[i]);
@@ -149,7 +124,6 @@ index 0000000..xxxxxxxx
 +            return r;
 +        }
 +
-+        // ===== 其他运算 =====
 +        public long add(long a, long b) { return a + b; }
 +        public long subtract(long a, long b) { return a - b; }
 +        public long negate(long v) { return -v; }
@@ -165,16 +139,15 @@ index 0000000..xxxxxxxx
 +        }
 +    }
 +
-+    // ===== 工厂方法 =====
 +    public static FixedScaleCalculator createCalculator(int scale) {
 +        return new FixedScaleCalculator(scale);
 +    }
 +
 +    public static FixedScaleCalculator createCurrencyCalculator() {
-+        return new FixedScaleCalculator(2);  // 货币精度
++        return new FixedScaleCalculator(2);
 +    }
 +
 +    public static FixedScaleCalculator createPercentageCalculator() {
-+        return new FixedScaleCalculator(4);  // 百分比精度
++        return new FixedScaleCalculator(4);
 +    }
 +}
