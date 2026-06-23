@@ -1,6 +1,11 @@
-# BigDecimal 算法级优化 (JDK 25+)
+# BigDecimal 算法级优化 (JDK 21+)
 
 纯 Java 算法级优化 BigDecimal，适用于固定精度场景 (scale 0-18)。
+
+## Patch 版本
+
+- JDK 25+: `fastdecimal-jdk25.patch`
+- JDK 21+: `fastdecimal-jdk21.patch`
 
 ## 性能成果
 
@@ -63,8 +68,8 @@ BigDecimal output = calc.toDecimal(result);
 
 ## 系统要求
 
-- JDK 21+
-- 推荐 JDK 25+
+- JDK 21+ (fastdecimal-jdk21.patch)
+- JDK 25+ (fastdecimal-jdk25.patch)
 
 ## License
 
